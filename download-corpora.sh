@@ -1,75 +1,55 @@
 #!/bin/bash
 
-OPUS_DIR=opus_dir
+MTDATA_CACHE=.mtdata
 DATA=data
 L1=en
 L2=mt
+L1_ISO=$(python -m mtdata.iso $L1 | grep "^$L1" | cut -f2)
+L2_ISO=$(python -m mtdata.iso $L2 | grep "^$L2" | cut -f2)
 
 # blacklisted corpora for the test
 BLACKLIST=('GNOME' 'KDE4' 'Ubuntu', 'PHP', 'OpenSubtitles')
 
 # Obtain list of available corpora
-CORPORA=$(wget -q -O - "http://opus.nlpl.eu/opusapi/?corpora=True&source=$L1&target=$L2" \
-    | jq '.corpora[]' \
-    | grep -v ParaCrawl \
-    | tr -d '"')
+CORPORA=$(mtdata list -l $L1-$L2 \
+    | cut -f 1 \
+    | grep -vi 'total\|paracrawl\|opus100' \
+    | ./uniq-versions.py)
 
-# Download opus corpora in moses format
-mkdir -p $OPUS_DIR/$L1-$L2
 mkdir -p $DATA/$L1-$L2
-for corpus in $CORPORA
-do
-    if [ "$corpus" == "JW300" ] && [ ! -f $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.tok ]
-    then
-        printf "Downloading JW300... "
-        # JW300 does not have moses file and comes tokenized
-        opus_read -s $L1 -t $L2 \
-            -wm moses -d $corpus -dl $OPUS_DIR/$L1-$L2 \
-            > $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.tok
-        echo done
-    else
-        # Get latest version of the corpus
-        version=$(wget -O - -q http://opus.nlpl.eu/$corpus/ \
-            | grep -o '>v.*/</a>' | grep -o 'v[^/]*' | tail -1)
 
-        # Direct download moses file to avoid doing alignment with opus_tools
-        wget --progress=bar -nc -O $OPUS_DIR/$L1-$L2/$corpus.zip "https://object.pouta.csc.fi/OPUS-$corpus/$version/moses/$L1-$L2.txt.zip"
-    fi
-done
+# Download corpora
+mtdata -c $MTDATA_CACHE get -l $L1-$L2 -tr ${CORPORA[@]} -o $DATA/$L1-$L2
 
 # Download ParaCrawl
-wget -nc -O $OPUS_DIR/$L1-$L2/paracrawlv7.$L1-$L2.txt.gz "https://s3.amazonaws.com/web-language-models/paracrawl/release7.1/$L1-$L2.txt.gz"
+wget -nc -O $DATA/$L1-$L2/paracrawlv7.$L1-$L2.gz "https://s3.amazonaws.com/web-language-models/paracrawl/release7.1/$L1-$L2.txt.gz"
 
-# Extract Opus files
+# Merge train files
+# Keep little corpora for dev/test sets except blacklisted
 DEVTEST=()
 for corpus in $CORPORA
 do
     if [ "$corpus" == "JW300" ]
     then
         # Detokenize JW300
-        cut -f 1 $OPUS_DIR/$L1-$L2/JW300.$L1-$L2.tok \
-            | sacremoses -l $L1 detokenize \
-            > $OPUS_DIR/$L1-$L2/JW300.$L1-$L2.$L1
-        cut -f 2 $OPUS_DIR/$L1-$L2/JW300.$L1-$L2.tok \
-            | sacremoses -l $L2 detokenize \
-            > $OPUS_DIR/$L1-$L2/JW300.$L1-$L2.$L2
-    else
-        unzip -nd $OPUS_DIR/$L1-$L2 $OPUS_DIR/$L1-$L2/$corpus.zip -x README LICENSE *.xml *.ids
+        mv $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO.tok
+        sacremoses -l $L1 detokenize < $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO.tok \
+            > $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO
+        mv $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO.tok
+        sacremoses -l $L2 detokenize < $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO.tok \
+            > $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
     fi
 
-    # Keep little corpora for dev/test sets except blacklisted
     # Always count the english number of tokens
-    #tokens=$(cat $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.$L1 | wc -w)
     printf '%s\n' "${BLACKLIST[@]}" | grep -q -P "^$corpus$"
     code=$?
-    echo $corpus code: $code
-    if [[ $code -gt 0 ]] && [[ $(cat $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.en | wc -w) -gt 250000 ]]
+    if [[ $code -gt 0 ]] && [[ $(cat $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.eng | wc -w) -gt 250000 ]]
     then
-        paste $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.$L1 $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.$L2 > $DATA/$L1-$L2/$corpus.$L1-$L2
+        paste $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
     else
         DEVTEST+=($corpus)
     fi
-done
+done | gzip > $DATA/$L1-$L2/train.$L1-$L2.gz
 
 echo "${DEVTEST[@]}"
 
@@ -78,7 +58,7 @@ echo "${DEVTEST[@]}"
 MYTEMP=$(mktemp)
 for corpus in "${DEVTEST[@]}"
 do
-    paste $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.$L1 $OPUS_DIR/$L1-$L2/$corpus.$L1-$L2.$L2
+    paste $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
 done | shuf | awk -F ' ' '{if((NF-1) >= 4) print $0}' > $MYTEMP
 
 # Split into dev and test

@@ -2,6 +2,7 @@
 
 MTDATA_CACHE=.mtdata
 DATA=data
+PC_VERSION=7.1
 L1=en
 L2=mt
 L1_ISO=$(python -m mtdata.iso $L1 | grep "^$L1" | cut -f2)
@@ -22,7 +23,7 @@ mkdir -p $DATA/$L1-$L2
 mtdata -c $MTDATA_CACHE get -l $L1-$L2 -tr ${CORPORA[@]} -o $DATA/$L1-$L2
 
 # Download ParaCrawl
-wget -nc -O $DATA/$L1-$L2/paracrawlv7.$L1-$L2.gz "https://s3.amazonaws.com/web-language-models/paracrawl/release7.1/$L1-$L2.txt.gz"
+wget -nc -O $DATA/$L1-$L2/paracrawlv$PC_VERSION.$L1-$L2.gz "https://s3.amazonaws.com/web-language-models/paracrawl/release$PC_VERSION/$L1-$L2.txt.gz"
 
 # Merge train files
 # Keep little corpora for dev/test sets except blacklisted
@@ -40,18 +41,23 @@ do
             > $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
     fi
 
-    # Always count the english number of tokens
+    # Look for the corpus in the blacklist
     printf '%s\n' "${BLACKLIST[@]}" | grep -q -P "^$corpus$"
     code=$?
+    # Always count the english number of tokens
     if [[ $code -gt 0 ]] && [[ $(cat $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.eng | wc -w) -gt 250000 ]]
     then
         paste $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
     else
         DEVTEST+=($corpus)
     fi
-done | gzip > $DATA/$L1-$L2/train.$L1-$L2.gz
+done | gzip > $DATA/$L1-$L2/opus.$L1-$L2.gz
 
-echo "${DEVTEST[@]}"
+# Combine OPUS+ParaCrawl
+cat $DATA/$L1-$L2/opus.$L1-$L2.gz $DATA/$L1-$L2/paracrawlv$PC_VERSION.$L1-$L2.gz \
+    > $DATA/$L1-$L2/opus-paracrawlv$PC_VERSION.$L1-$L2.gz
+
+echo Corpora for dev/test "${DEVTEST[@]}"
 
 # Separate into dev and test
 # Filter-out sentences with les than 4 spaces (words)

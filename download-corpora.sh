@@ -58,6 +58,7 @@ cat $DATA/$L1-$L2/opus.$L1-$L2.gz $DATA/$L1-$L2/paracrawlv$PC_VERSION.$L1-$L2.gz
     > $DATA/$L1-$L2/opus-paracrawlv$PC_VERSION.$L1-$L2.gz
 
 echo Corpora for dev/test "${DEVTEST[@]}"
+echo Creating dev and test sets...
 
 # Separate into dev and test
 # Filter-out sentences with les than 4 spaces (words)
@@ -72,3 +73,5 @@ head -5000 $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
 tail -n +5001 $MYTEMP | head -10000 > $DATA/$L1-$L2/dev.$L1-$L2
 
 rm -f $MYTEMP
+
+echo Done

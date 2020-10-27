@@ -10,17 +10,20 @@
 MARIAN=~/rds/rds-t2-cs119/cs-zara1/marian-dev/build
 L1=$1
 L2=$2
+CORPUS=opus
 CONFIG=config/transformer-base.yml
 MODELS=models/$L1-$L2
 DATA=data/$L1-$L2
 LOGS=logs/$L1-$L2
 
+MODELNAME=$CORPUS.`basename ${CONFIG%.yml}`
+
 $MARIAN/marian \
-    -m $MODELS/model.$L1-$L2.npz \
-    -v $MODELS/vocab.$L1-$L2.spm $MODELS/vocab.$L1-$L2.spm \
-    --tsv -t $DATA/train.$L1-$L2.gz \
+    -m $MODELS/$L1$L2.teacher.$MODELNAME.npz \
+    -v $MODELS/vocab.$L1$L2.spm $MODELS/vocab.$L1$L2.spm \
+    --tsv -t $DATA/$CORPUS.$L1-$L2.gz \
     --valid-sets $DATA/dev.$L1-$L2 \
     -c $CONFIG \
     -d $CUDA_VISIBLE_DEVICES \
-    --log $LOGS/train.log --valid-log $LOGS/valid.log
+    --log $LOGS/train.$MODELNAME.log --valid-log $LOGS/valid.$MODELNAME.log
 

@@ -82,5 +82,5 @@ run
 sbatch -J test-mt test.slurm mt en opus.base
 ```
 
-Assuming you want to test you want to test Transformer base model trained on OPUS tran translates Maltese to English that has trained on the previous step.
+Assuming you want to test Transformer base model trained on OPUS Maltese to English that has trained on the previous step.
 To test OPUS+ParaCrawl do the same but with `opus-paracrawlv7.1.base` instead of `opus.base`.

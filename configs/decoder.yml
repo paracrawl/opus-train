@@ -1,0 +1,7 @@
+beam-size: 6
+normalize: 1
+
+mini-batch: 64
+maxi-batch-sort: src
+maxi-batch: 100
+workspace: 8000

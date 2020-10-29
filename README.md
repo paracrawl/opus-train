@@ -1,6 +1,8 @@
 # opus-train
 This is a set of scripts to ease automation of downloading and training NMT models.
 
+All the scripts are configured and tested for CSD3, to use it on Cirrus or elsewhere, please change the `#SBATCH` parameters at the beggining of the Slurm scripts or overwrite them with desired cli parameters.
+
 ## Installation
 ```bash
 module load python/3.7
@@ -58,5 +60,27 @@ After downloading, languages are kept in separated files to allow training in bo
 ## Training models
 
 ```bash
-sbatch -J train-mt train.sh mt en
+sbatch -J train-mt train.sh mt en opus
 ```
+
+That will train Transformer base model with Maletese-English OPUS corpora.
+Logs are located at `logs/{train,valid}.opus.base.log`, model files at `models/mten.opus.base.npz*` and vocab file at `models/vocab.mten.opus.base.spm`.
+
+Download step also creates OPUS+ParaCrawl training file, to train with it simply use:
+```bash
+sbatch -J train-mt train.sh mt en opus-paracrawlv7.1
+```
+
+## Running test
+To run a test with a model and obtain BLEU score:
+```bash
+Usage: sbatch [params] test.slurm <lang1> <lang2> <modelname>
+modelname must follow the pattern <corpus_train>.<model_config>
+```
+run
+```bash
+sbatch -J test-mt test.slurm mt en opus.base
+```
+
+Assuming you want to test you want to test Transformer base model trained on OPUS tran translates Maltese to English that has trained on the previous step.
+To test OPUS+ParaCrawl do the same but with `opus-paracrawlv7.1.base` instead of `opus.base`.

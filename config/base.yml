@@ -3,6 +3,8 @@ mini-batch-fit: True
 workspace: 8000
 shuffle-in-ram: False
 
+after-batches: 5000
+
 early-stopping: 5
 exponential-smoothing: 0.0001
 keep-best: True

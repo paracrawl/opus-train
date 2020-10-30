@@ -23,7 +23,7 @@ L1_ISO=$(python -m mtdata.iso $L1 | grep "^$L1" | cut -f2)
 L2_ISO=$(python -m mtdata.iso $L2 | grep "^$L2" | cut -f2)
 
 # blacklisted corpora for the test
-BLACKLIST=('GNOME' 'KDE4' 'Ubuntu', 'PHP', 'OpenSubtitles')
+BLACKLIST=('GNOME' 'KDE4' 'Ubuntu' 'PHP' 'OpenSubtitles')
 
 # Obtain list of available corpora
 CORPORA=$(mtdata list -l $L1-$L2 \
@@ -57,14 +57,16 @@ do
     fi
 
     # Look for the corpus in the blacklist
-    printf '%s\n' "${BLACKLIST[@]}" | grep -q -P "$corpus"
-    code=$?
-    tokens=$(cat $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.eng | wc -w)
-    echo $corpus: $tokens tokens, $code found
+    blacklisted="FALSE"
+    for b in ${BLACKLIST[@]}; do
+        if [[ "$corpus" =~ "$b" ]]; then
+            blacklisted="TRUE"
+            continue
+        fi
+    done
     # Always count the english number of tokens
-    if [[ $code -gt 0 ]] && [[ $tokens -gt 250000 ]]
+    if [[ "$blacklisted" == "TRUE" ]] || [[ $(cat $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.eng | wc -w) -gt 250000 ]]
     then
-        #paste $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
         gzip -c $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO >> $DATA/$L1-$L2/opus.$L1.gz
         gzip -c $DATA/$L1-$L2/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO >> $DATA/$L1-$L2/opus.$L2.gz
     else

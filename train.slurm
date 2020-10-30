@@ -30,12 +30,13 @@ fi
 
 MODELNAME=$CORPUS.`basename ${CONFIG%.yml}`
 
+mkdir -p $MODELS
 $MARIAN/marian \
     -m $MODELS/$L1$L2.$MODELNAME.npz \
     -v $MODELS/vocab.$L1$L2.$MODELNAME.spm $MODELS/vocab.$L1$L2.$MODELNAME.spm \
     -t $DATA/$CORPUS.$L1.gz $DATA/$CORPUS.$L2.gz \
     --valid-sets $DATA/dev.$L1 $DATA/dev.$L2 \
     -c $CONFIG \
-    -d $CUDA_VISIBLE_DEVICES \
+    -d ${CUDA_VISIBLE_DEVICES//,/ } \
     --log $LOGS/train.$MODELNAME.$L1$L2.log --valid-log $LOGS/valid.$MODELNAME.$L1$L2.log
 

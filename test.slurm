@@ -29,7 +29,7 @@ cat $DATA/test.$L1 \
         -m $MODELS/$L1$L2.$MODELNAME.npz.best-ce-mean-words.npz \
         -v $MODELS/vocab.$L1$L2.$MODELNAME.spm $MODELS/vocab.$L1$L2.$MODELNAME.spm \
         -c $DECODER_CONFIG \
-        -d $CUDA_VISIBLE_DEVICES \
+        -d ${CUDA_VISIBLE_DEVICES//,/ } \
         -q --log $LOGS/test.$MODELNAME.$L1-$L2.log
     | tee $LOGS/test.$MODELNAME.$L1-$L2.hyp \
     | sacrebleu $DATA/test.$L2 \

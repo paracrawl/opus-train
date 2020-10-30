@@ -4,6 +4,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --array=1-7%1
 #SBATCH --time=24:00:00
+#SBATCH --output=logs/slurm-%x_%j.out
 
 #SBATCH -p pascal
 

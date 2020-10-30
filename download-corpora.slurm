@@ -96,8 +96,17 @@ do
 done | shuf | awk -F ' ' '{if((NF-1) >= 4) print $0}' > $MYTEMP
 
 # Split into dev and test
-head -5000 $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
-tail -n +5001 $MYTEMP | head -10000 > $DATA/$L1-$L2/dev.$L1-$L2
+lines=$(cat $MYTEMP | wc -l)
+if [[ $lines -lt 5000 ]]; then
+    head -$((lines/2)) $MYTEMP > $DATA/$L1-$L2/dev.$L1-$L2
+    tail -n +$((lines/2+1)) $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
+elif [[ $lines -lt 10000 ]]; then
+    head -5000 $MYTEMP > $DATA/$L1-$L2/dev.$L1-$L2
+    tail -n +5001 $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
+else
+    head -5000 $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
+    tail -n +5001 $MYTEMP | head -10000 > $DATA/$L1-$L2/dev.$L1-$L2
+fi
 # Separate languages
 for i in dev test
 do

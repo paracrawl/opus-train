@@ -43,7 +43,7 @@ cd marian-dev
 git submodule update --init
 mkdir build
 cd build
-cmake .. -DUSE_SENTENCEPIECE=ON
+cmake .. -DUSE_SENTENCEPIECE=ON -DCMAKE_CXX_STANDARD_LIBRARIES="-liconv" # -liconv option to allow building on CSD3
 make -j24
 ```
 
@@ -60,7 +60,7 @@ After downloading, languages are kept in separated files to allow training in bo
 ## Training models
 
 ```bash
-sbatch -J train-mt train.sh mt en opus
+sbatch -J train-mt train.slurm mt en opus
 ```
 
 That will train Transformer base model with Maletese-English OPUS corpora.
@@ -68,7 +68,7 @@ Logs are located at `logs/{train,valid}.opus.base.log`, model files at `models/m
 
 Download step also creates OPUS+ParaCrawl training file, to train with it simply use:
 ```bash
-sbatch -J train-mt train.sh mt en opus-paracrawlv7.1
+sbatch -J train-mt train.slurm mt en opus-paracrawlv7.1
 ```
 
 ## Running test

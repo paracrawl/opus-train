@@ -88,3 +88,10 @@ sbatch -J test-mt test.slurm mt en opus.base
 
 Assuming you want to test Transformer base model trained on OPUS Maltese to English that has trained on the previous step.
 To test OPUS+ParaCrawl do the same but with `opus-paracrawlv7.1.base` instead of `opus.base`.
+
+
+## Checking overlap sentences with test
+There's a script to count overlap sentences with two files, it will print to stderr the found sentences and to stdout the % of the file passed as parameter that are on the stdin:
+```
+zcat data/en-mt/opus.en.gz | ./scripts/overlap.py data/en-mt/test-opus.en
+```

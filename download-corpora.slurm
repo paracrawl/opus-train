@@ -30,7 +30,7 @@ BLACKLIST=('GNOME' 'KDE4' 'Ubuntu' 'PHP' 'OpenSubtitles')
 CORPORA=$(mtdata list -l $L1-$L2 \
     | cut -f 1 \
     | grep -vi 'total\|paracrawl\|opus100\|opus_qed\|tedtalks' \
-    | ./uniq-versions.py)
+    | ./scripts/uniq-versions.py)
 
 mkdir -p $DATA/$L1-$L2
 

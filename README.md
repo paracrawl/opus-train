@@ -5,6 +5,9 @@ All the scripts are configured and tested for CSD3, to use it on Cirrus or elsew
 
 ## Installation
 ```bash
+# Multilingual TED sets are required, so clone revursively
+git clone --recursive --depth 1 https://github.com/paracrawl/opus-train
+cd opus-train
 module load python/3.7
 python3.7 -m venv venv
 source venv/bin/activate
@@ -74,6 +77,7 @@ sbatch -J train-mt train.slurm mt en opus-paracrawlv7.1
 ## Running test
 To run a test with a model and obtain BLEU score:
 ```bash
+Run tests (OPUS and TED) with a model
 Usage: sbatch [params] test.slurm <lang1> <lang2> <modelname>
 modelname must follow the pattern <corpus_train>.<model_config>
 ```

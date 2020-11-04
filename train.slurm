@@ -20,8 +20,8 @@ L1=$1
 L2=$2
 CORPUS=$3
 CONFIG=config/base.yml
-MODELS=models/
-LOGS=logs/
+MODELS=models
+LOGS=logs
 if [ -d data/$L1-$L2 ]; then
     DATA=data/$L1-$L2
 else

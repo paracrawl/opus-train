@@ -1,3 +1,6 @@
 [submodule "marian-dev"]
 	path = marian-dev
 	url = https://github.com/marian-nmt/marian-dev
+[submodule "multilingual-ted"]
+	path = multilingual-ted
+	url = https://github.com/paracrawl/multilingual-ted

@@ -17,6 +17,7 @@ source ./venv/bin/activate
 MTDATA_CACHE=.mtdata
 DATA=data
 PC_VERSION=7.1
+TED_SETS=multilingual-ted/paracrawl-v6
 L1=$1
 L2=$2
 L1_ISO=$(python -m mtdata.iso $L1 | grep "^$L1" | cut -f2)
@@ -28,7 +29,7 @@ BLACKLIST=('GNOME' 'KDE4' 'Ubuntu' 'PHP' 'OpenSubtitles')
 # Obtain list of available corpora
 CORPORA=$(mtdata list -l $L1-$L2 \
     | cut -f 1 \
-    | grep -vi 'total\|paracrawl\|opus100' \
+    | grep -vi 'total\|paracrawl\|opus100\|opus_qed\|tedtalks' \
     | ./uniq-versions.py)
 
 mkdir -p $DATA/$L1-$L2
@@ -84,6 +85,8 @@ zcat $DATA/$L1-$L2/paracrawlv$PC_VERSION.$L1-$L2.gz \
     | cat $DATA/$L1-$L2/opus.$L2.gz - \
     > $DATA/$L1-$L2/opus-paracrawlv$PC_VERSION.$L2.gz
 
+
+
 echo Corpora for dev/test "${DEVTEST[@]}"
 echo Creating dev and test sets...
 
@@ -99,17 +102,28 @@ done | shuf | awk -F ' ' '{if((NF-1) >= 4) print $0}' > $MYTEMP
 lines=$(cat $MYTEMP | wc -l)
 if [[ $lines -lt 5000 ]]; then
     head -$((lines/2)) $MYTEMP > $DATA/$L1-$L2/dev.$L1-$L2
-    tail -n +$((lines/2+1)) $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
+    tail -n +$((lines/2+1)) $MYTEMP > $DATA/$L1-$L2/test-opus.$L1-$L2
 elif [[ $lines -lt 10000 ]]; then
     head -5000 $MYTEMP > $DATA/$L1-$L2/dev.$L1-$L2
-    tail -n +5001 $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
+    tail -n +5001 $MYTEMP > $DATA/$L1-$L2/test-opus.$L1-$L2
 else
-    head -5000 $MYTEMP > $DATA/$L1-$L2/test.$L1-$L2
+    head -5000 $MYTEMP > $DATA/$L1-$L2/test-opus.$L1-$L2
     tail -n +5001 $MYTEMP | head -10000 > $DATA/$L1-$L2/dev.$L1-$L2
 fi
+
+# if TED data available
+# concatenate dev and create another test
+lines=$(cat $TED_SETS/multi-ted-*.$L1-$L2 | wc -l)
+if [ "$lines" -gt 3000 ]; then
+    echo Multilingual TED dev/test sets available, copying...
+    cat $TED_SETS/multi-ted-dev.$L1-$L2 >> $DATA/dev.$L1-$L2
+    cp $TED_SETS/multi-ted-test.$L1-$L2 $DATA/test-ted.$L1-$L2
+fi
+
 # Separate languages
-for i in dev test
+for i in dev test-opus test-ted
 do
+    test -s $DATA/$L1-$L2/$i.$L1-$L2 || continue
     cut -f1 $DATA/$L1-$L2/$i.$L1-$L2 > $DATA/$L1-$L2/$i.$L1
     cut -f2 $DATA/$L1-$L2/$i.$L1-$L2 > $DATA/$L1-$L2/$i.$L2
     rm $DATA/$L1-$L2/$i.$L1-$L2

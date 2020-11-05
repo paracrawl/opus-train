@@ -1,0 +1,51 @@
+seed: 42
+mini-batch-fit: True
+workspace: 6000
+
+early-stopping: 5
+exponential-smoothing: 0.0001
+keep-best: True
+valid-freq: 5000
+valid-mini-batch: 32
+save-freq: 5000
+overwrite: True
+disp-freq: 1000
+
+valid-metrics:
+    - ce-mean-words
+    - perplexity
+    - bleu-detok
+
+beam-size: 6
+normalize: 0.6
+
+cost-type: ce-mean-words
+type: transformer
+enc-depth: 6
+dec-depth: 6
+dim-emb: 1024
+transformer-heads: 16
+transformer-dim-ffn: 4096
+transformer-ffn-depth: 2
+transformer-ffn-activation: swish
+transformer-decoder-autoreg: self-attention
+
+transformer-dropout: 0.3
+transformer-dropout-ffn: 0.1
+transformer-dropout-attention: 0.1
+label-smoothing: 0.1
+
+layer-normalization: True
+tied-embeddings-all: True
+
+learn-rate: 0.0003
+lr-warmup: 20000
+lr-decay-inv-sqrt: 20000
+lr-report: True
+optimizer-params:
+    - 0.9
+    - 0.98
+    - 1e-09
+clip-norm: 0
+sync-sgd: true
+optimizer-delay: 2

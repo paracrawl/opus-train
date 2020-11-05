@@ -76,12 +76,12 @@ do
 done
 
 # Merge dev/test corpora
-# Filter-out sentences with les than 4 spaces (words)
+# Filter-out sentences with less than 4 spaces (words) and too long
 MYTEMP=$(mktemp)
 for corpus in "${DEVTEST[@]}"
 do
     paste $DATA/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L1_ISO $DATA/train-parts/$corpus-"$L1_ISO"_$L2_ISO.$L2_ISO
-done | shuf | awk -F ' ' '{if((NF-1) >= 4) print $0}' > $MYTEMP
+done | shuf | awk -F ' ' '{if((NF-1) >= 4 && (NF-1) < 250 ) print $0}' > $MYTEMP
 
 # Merge train files
 # remove dev/test sentences

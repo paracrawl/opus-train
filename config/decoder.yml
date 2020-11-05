@@ -1,7 +1,10 @@
 beam-size: 6
 normalize: 1
 
-mini-batch: 64
+mini-batch: 32
 maxi-batch-sort: src
 maxi-batch: 100
+max-length-factor: 2.5
+max-length: 200
+max-length-crop: true
 workspace: 8000

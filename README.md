@@ -2,6 +2,7 @@
 This is a set of scripts to ease automation of downloading and training NMT models.
 
 All the scripts are configured and tested for CSD3, to use it on Cirrus or elsewhere, please change the `#SBATCH` parameters at the beggining of the Slurm scripts or overwrite them with desired cli parameters.
+Also, SLURM modules loaded at the begining of the scripts would be different.
 
 ## Installation
 ```bash
@@ -95,3 +96,11 @@ There's a script to count overlap sentences with two files, it will print to std
 ```
 zcat data/en-mt/opus.en.gz | ./scripts/overlap.py data/en-mt/test-opus.en
 ```
+
+## Train/dev/test split policy
+The download script will use the smaller corpora (less than 250k words on source side) to create the dev/test sets from OPUS.
+Also, sentences that overlap are explictily removed from the training set.
+Despite of that, take into account that parapgraph overlap is still present, especially for low-resourced languages.
+That's why Multilingual TED is also used.
+For the development, the TED data is concatenated to the development set of OPUS and for the test, it is kept as a separated test file.
+Both, the held-out test from OPUS and the TED test, will be run in the `test.slurm` script.

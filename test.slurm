@@ -15,6 +15,14 @@ then
     exit 0
 fi
 
+# Set the environment
+. /etc/profile.d/modules.sh
+module purge
+module load rhel7/default-peta4
+module load python/3.7
+module load cuda/10.1
+source ./venv/bin/activate
+
 MARIAN=~/rds/rds-t2-cs119/cs-zara1/marian-dev/build
 L1=$1
 L2=$2

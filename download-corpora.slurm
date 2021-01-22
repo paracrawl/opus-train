@@ -29,7 +29,7 @@ BLACKLIST=('GNOME' 'KDE4' 'Ubuntu' 'PHP' 'OpenSubtitles')
 # Obtain list of available corpora
 CORPORA=$(mtdata list -l $L1-$L2 \
     | cut -f 1 \
-    | grep -vi 'total\|paracrawl\|opus100\|opus_qed\|tedtalks\|ted2013' \
+    | grep -vi 'total\|paracrawl\|opus100\|opus_qed\|tedtalks\|ted2013\|wmt_news\|newstest\|newsdev' \
     | ./scripts/uniq-versions.py)
 
 mkdir -p $DATA/$L1-$L2
